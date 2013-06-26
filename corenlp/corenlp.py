@@ -330,17 +330,10 @@ class StanfordCoreNLP:
     Can be run as a JSON-RPC server or imported as a module.
     """
 
-    def __init__(self, corenlp_path=DIRECTORY, memory="3g", properties='default.properties'):
-        """
-        Checks the location of the jar files.
-        Spawns the server as a process.
-        """
-
-        # spawn the server
-        start_corenlp = init_corenlp_command(corenlp_path, memory, properties)
+    def _spawn_corenlp(self):
         if VERBOSE:
-            print start_corenlp
-        self.corenlp = pexpect.spawn(start_corenlp)
+            print self.start_corenlp
+        self.corenlp = pexpect.spawn(self.start_corenlp, maxread=8192, searchwindowsize=80)
 
         # show progress bar while loading the models
         if VERBOSE:
@@ -361,6 +354,16 @@ class StanfordCoreNLP:
 
         # interactive shell
         self.corenlp.expect("\nNLP> ", timeout=3)
+
+    def __init__(self, corenlp_path=DIRECTORY, memory="3g", properties='default.properties'):
+        """
+        Checks the location of the jar files.
+        Spawns the server as a process.
+        """
+
+        # spawn the server
+        self.start_corenlp = init_corenlp_command(corenlp_path, memory, properties)
+        self._spawn_corenlp()
 
     def close(self, force=True):
         self.corenlp.terminate(force)
@@ -421,7 +424,6 @@ class StanfordCoreNLP:
             print >>sys.stderr, {'error': "CoreNLP terminates abnormally while parsing",
                                  'input': to_send,
                                  'output': incoming}
-            self.corenlp.close()
             raise ProcessError("CoreNLP process terminates abnormally while parsing")
         elif t == 3:
             # out of memory
@@ -447,7 +449,14 @@ class StanfordCoreNLP:
         reads in the result, parses the results and returns a list
         with one dictionary entry for each parsed sentence.
         """
-        return self._parse(text)
+        try:
+            r = self._parse(text)
+            return r
+        except Exception as e:
+            print e  # Should probably log somewhere instead of printing
+            self.corenlp.close()
+            self._spawn_corenlp()
+            return []
 
     def parse(self, text):
         """
@@ -499,6 +508,7 @@ if __name__ == '__main__':
 
         nlp = StanfordCoreNLP(options.corenlp, properties=options.properties)
         server.register_function(nlp.parse)
+        server.register_function(nlp.raw_parse)
 
         print 'Serving on http://%s:%s' % (options.host, options.port)
         # server.serve()
