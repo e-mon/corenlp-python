@@ -76,6 +76,15 @@ class TimeoutError(Exception):
         return repr(self.value)
 
 
+class OutOfMemoryError(Exception):
+
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+
 def init_corenlp_command(corenlp_path, memory, properties):
     """
     Checks the location of the jar files.
@@ -353,15 +362,16 @@ class StanfordCoreNLP:
             pbar.finish()
 
         # interactive shell
-        self.corenlp.expect("\nNLP> ", timeout=3)
+        self.corenlp.expect("\nNLP> ")
 
-    def __init__(self, corenlp_path=DIRECTORY, memory="3g", properties='default.properties'):
+    def __init__(self, corenlp_path=DIRECTORY, memory="3g", properties='default.properties', serving=False):
         """
         Checks the location of the jar files.
         Spawns the server as a process.
         """
 
         # spawn the server
+        self.serving = serving
         self.start_corenlp = init_corenlp_command(corenlp_path, memory, properties)
         self._spawn_corenlp()
 
@@ -430,7 +440,7 @@ class StanfordCoreNLP:
             print >>sys.stderr, {'error': "WARNING: Parsing of sentence failed, possibly because of out of memory.",
                                  'input': to_send,
                                  'output': incoming}
-            return
+            raise OutOfMemoryError
 
         if VERBOSE:
             print "%s\n%s" % ('=' * 40, incoming)
@@ -456,7 +466,9 @@ class StanfordCoreNLP:
             print e  # Should probably log somewhere instead of printing
             self.corenlp.close()
             self._spawn_corenlp()
-            return []
+            if self.serving:  # We don't want to raise the exception when acting as a server
+                return []
+            raise e
 
     def parse(self, text):
         """
@@ -506,7 +518,7 @@ if __name__ == '__main__':
     try:
         server = SimpleJSONRPCServer((options.host, int(options.port)))
 
-        nlp = StanfordCoreNLP(options.corenlp, properties=options.properties)
+        nlp = StanfordCoreNLP(options.corenlp, properties=options.properties, serving=True)
         server.register_function(nlp.parse)
         server.register_function(nlp.raw_parse)
 
