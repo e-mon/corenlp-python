@@ -37,8 +37,10 @@ STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFE
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
 
-DIRECTORY = "stanford-corenlp-full-2013-06-20"
-
+if os.environ.has_key("CORENLP"):
+    DIRECTORY = os.environ["CORENLP"]
+else:
+    DIRECTORY = "stanford-corenlp-full-2013-06-20"
 
 class bc:
     HEADER = '\033[95m'
@@ -342,7 +344,7 @@ class StanfordCoreNLP:
     def _spawn_corenlp(self):
         if VERBOSE:
             print self.start_corenlp
-        self.corenlp = pexpect.spawn(self.start_corenlp, maxread=8192, searchwindowsize=80)
+        self.corenlp = pexpect.spawn(self.start_corenlp, timeout=60, maxread=8192, searchwindowsize=80)
 
         # show progress bar while loading the models
         if VERBOSE:
