@@ -196,7 +196,6 @@ def parse_parser_results(text):
                 if len(split_entry) == 3:
                     rel, left, right = map(lambda x: remove_id(x), split_entry)
                     sentence['dependencies'].append(tuple([rel, left, right]))
-
                     sentence['indexeddependencies'].append(tuple(split_entry))
 
         elif state == STATE_COREFERENCE:
