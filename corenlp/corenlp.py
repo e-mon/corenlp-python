@@ -166,7 +166,7 @@ def parse_parser_results(text):
         line = line.strip()
 
         if line.startswith("Sentence #"):
-            sentence = {'words': [], 'parsetree': [], 'dependencies': []}
+            sentence = {'words': [], 'parsetree': [], 'dependencies': [], 'indexeddependencies': []}
             results["sentences"].append(sentence)
             state = STATE_TEXT
 
@@ -196,6 +196,8 @@ def parse_parser_results(text):
                 if len(split_entry) == 3:
                     rel, left, right = map(lambda x: remove_id(x), split_entry)
                     sentence['dependencies'].append(tuple([rel, left, right]))
+
+                    sentence['indexeddependencies'].append(tuple(split_entry))
 
         elif state == STATE_COREFERENCE:
             if "Coreference set" in line:
