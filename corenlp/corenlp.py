@@ -222,8 +222,13 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
     from collections import OrderedDict
 
     def extract_words_from_xml(sent_node):
-        exted = map(lambda x: x['word'], sent_node['tokens']['token'])
-        return exted
+        if type(sent_node['tokens']['token']) == type(OrderedDict()):
+            # This is also specific case of xmltodict
+            exted = [sent_node['tokens']['token']]
+        else:
+            exted = sent_node['tokens']['token']
+        exted_string = map(lambda x: x['word'], exted)
+        return exted_string
 
     # Turning the raw xml into a raw python dictionary:
     raw_dict = xmltodict.parse(xml)
@@ -242,11 +247,17 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
         # Making a raw coref dictionary:
         raw_coref_list = document[u'coreference'][u'coreference']
 
+        # It is specific case that there is only one item for xmltodict
+        if len(raw_coref_list) == 1:
+            raw_coref_list = [raw_coref_list]
+        if len(raw_sent_list) == 1:
+            raw_sent_list = [raw_sent_list]
+
         # To dicrease is for given index different from list index
-        coref_index = [[[int(raw_coref_list[j][u'mention'][i]['sentence']) - 1,
-                         int(raw_coref_list[j][u'mention'][i]['head']) - 1,
-                         int(raw_coref_list[j][u'mention'][i]['start']) - 1,
-                         int(raw_coref_list[j][u'mention'][i]['end']) - 1]
+        coref_index = [[[int(raw_coref_list[j]['mention'][i]['sentence']) - 1,
+                         int(raw_coref_list[j]['mention'][i]['head']) - 1,
+                         int(raw_coref_list[j]['mention'][i]['start']) - 1,
+                         int(raw_coref_list[j]['mention'][i]['end']) - 1]
                         for i in xrange(len(raw_coref_list[j][u'mention']))]
                        for j in xrange(len(raw_coref_list))]
 
@@ -254,7 +265,11 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
         for j in xrange(len(coref_index)):
             coref_list.append(coref_index[j])
             for k, coref in enumerate(coref_index[j]):
-                exted = raw_sent_list[coref[0]]['tokens']['token'][coref[2]:coref[3]]
+                if type(raw_sent_list[coref[0]]['tokens']['token']) == type(OrderedDict()):
+                    # This is also specific case of xmltodict
+                    exted = [raw_sent_list[coref[0]]['tokens']['token']]
+                else:
+                    exted = raw_sent_list[coref[0]]['tokens']['token'][coref[2]:coref[3]]
                 exted_words = map(lambda x: x['word'], exted)
                 coref_list[j][k].insert(0, ' '.join(exted_words))
 
@@ -265,25 +280,39 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
         coref_flag = False
 
     # Convert sentences to the format like python
-    # TODO: If there is only one sentence in input sentence,
-    # raw_sent_list is dict and cannot decode following code...
-    sentences = [{'dependencies': [[dep['dep'][i]['@type'],
-                                    dep['dep'][i]['governor']['#text'],
-                                    dep['dep'][i]['dependent']['#text']]
-                                   for dep in raw_sent_list[j][u'dependencies']
-                                   for i in xrange(len(dep['dep']))
-                                   if dep['@type'] == 'basic-dependencies'],
-                  'text': extract_words_from_xml(raw_sent_list[j]),
-                  'parsetree': str(raw_sent_list[j]['parse']),
-                  'words': [[str(token['word']), OrderedDict([
-                      ('NamedEntityTag', str(token['NER'])),
-                      ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
-                      ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
-                      ('PartOfSpeech', str(token['POS'])),
-                      ('Lemma', str(token['lemma']))])]
-                  for token in raw_sent_list[j][u'tokens'][u'token']]}
-
-                 for j in xrange(len(raw_sent_list))]
+    # TODO: If there is only one sentence in input,
+    # raw_sent_list is a dict and cannot decode it by following code...
+    sentences = []
+    for id in xrange(len(raw_sent_list)):
+        sent = {}
+        sent['text'] = extract_words_from_xml(raw_sent_list[id])
+        sent['parsetree'] = str(raw_sent_list[id]['parse'])
+        if type(raw_sent_list[id]['tokens']['token']) == type(OrderedDict()):
+            # This is also specific case of xmltodict
+            token = raw_sent_list[id]['tokens']['token']
+            sent['words'] = [
+                [str(token['word']), OrderedDict([
+                    ('NamedEntityTag', str(token['NER'])),
+                    ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
+                    ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
+                    ('PartOfSpeech', str(token['POS'])),
+                    ('Lemma', str(token['lemma']))])]
+            ]
+        else:
+            sent['words'] = [[str(token['word']), OrderedDict([
+                ('NamedEntityTag', str(token['NER'])),
+                ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
+                ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
+                ('PartOfSpeech', str(token['POS'])),
+                ('Lemma', str(token['lemma']))])]
+                             for token in raw_sent_list[id]['tokens']['token']]
+        sent['dependencies'] = [[dep['dep'][i]['@type'],
+                                 dep['dep'][i]['governor']['#text'],
+                                 dep['dep'][i]['dependent']['#text']]
+                                for dep in raw_sent_list[id]['dependencies'] if dep.get('dep')
+                                for i in xrange(len(dep['dep']))
+                                if dep['@type'] == 'basic-dependencies']
+        sentences.append(sent)
 
     if coref_flag:
         results = {'coref': coref_list, 'sentences': sentences}
