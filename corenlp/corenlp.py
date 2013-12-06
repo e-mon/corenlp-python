@@ -36,11 +36,13 @@ VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
 CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
+# CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
 
 if os.environ.has_key("CORENLP"):
     DIRECTORY = os.environ["CORENLP"]
 else:
     DIRECTORY = "stanford-corenlp-full-2013-06-20"
+    # DIRECTORY = "stanford-corenlp-full-2013-11-12"
 
 class bc:
     HEADER = '\033[95m'
@@ -93,12 +95,17 @@ def init_corenlp_command(corenlp_path, memory, properties):
     Spawns the server as a process.
     """
 
-    # TODO: Can edit jar constants
     jars = ["stanford-corenlp-3.2.0.jar",
             "stanford-corenlp-3.2.0-models.jar",
             "xom.jar",
             "joda-time.jar",
             "jollyday.jar"]
+    # jars = ["stanford-corenlp-3.3.0.jar",
+    #         "stanford-corenlp-3.3.0-models.jar",
+    #         "xom.jar",
+    #         "joda-time.jar",
+    #         "jollyday.jar",
+    #         "ejml-0.23.jar"] # No idea what this is but it might be sentiment
 
     java_path = "java"
     classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
@@ -125,6 +132,7 @@ def init_corenlp_command(corenlp_path, memory, properties):
         limit = ""
 
     return "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
+    # return "%s %s -cp %s %s -annotators tokenize,ssplit,pos,lemma,ner,parse,dcoref,sentiment" % (java_path, limit, ':'.join(jars), classname) # TODO tim check whether you can add sentiment here
 
 
 def remove_id(word):
@@ -221,6 +229,12 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
     import xmltodict
     from collections import OrderedDict
 
+    def enforceList(list_or_ordered_dict): #TIM
+        if type(list_or_ordered_dict) == type(OrderedDict()):
+            return [list_or_ordered_dict]
+        else:
+            return list_or_ordered_dict
+
     def extract_words_from_xml(sent_node):
         if type(sent_node['tokens']['token']) == type(OrderedDict()):
             # This is also specific case of xmltodict
@@ -253,6 +267,9 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
         if len(raw_sent_list) == 1:
             raw_sent_list = [raw_sent_list]
 
+        # This is also specific case of xmltodict
+        raw_sent_list = enforceList(raw_sent_list)
+
         # To dicrease is for given index different from list index
         coref_index = [[[int(raw_coref_list[j]['mention'][i]['sentence']) - 1,
                          int(raw_coref_list[j]['mention'][i]['head']) - 1,
@@ -279,38 +296,42 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
     else:
         coref_flag = False
 
-    # Convert sentences to the format like python
-    # TODO: If there is only one sentence in input,
-    # raw_sent_list is a dict and cannot decode it by following code...
+    # This is also specific case of xmltodict
+    raw_sent_list = enforceList(raw_sent_list)
+
     sentences = []
     for id in xrange(len(raw_sent_list)):
         sent = {}
         sent['text'] = extract_words_from_xml(raw_sent_list[id])
-        sent['parsetree'] = str(raw_sent_list[id]['parse'])
+        sent['parsetree'] = unicode(raw_sent_list[id]['parse'])
+        # This only works if sentiment annotation is available.
+        sent['sentimentValue'] = int(raw_sent_list[id]['@sentimentValue']) # TIM
+        sent['sentiment'] = raw_sent_list[id]['@sentiment'] # TIM
         if type(raw_sent_list[id]['tokens']['token']) == type(OrderedDict()):
             # This is also specific case of xmltodict
             token = raw_sent_list[id]['tokens']['token']
             sent['words'] = [
-                [str(token['word']), OrderedDict([
+                [unicode(token['word']), OrderedDict([
                     ('NamedEntityTag', str(token['NER'])),
                     ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
                     ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
                     ('PartOfSpeech', str(token['POS'])),
-                    ('Lemma', str(token['lemma']))])]
+                    ('Lemma', unicode(token['lemma']))])]
             ]
         else:
-            sent['words'] = [[str(token['word']), OrderedDict([
+            sent['words'] = [[unicode(token['word']), OrderedDict([
                 ('NamedEntityTag', str(token['NER'])),
                 ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
                 ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
                 ('PartOfSpeech', str(token['POS'])),
-                ('Lemma', str(token['lemma']))])]
+                ('Lemma', unicode(token['lemma']))])]
                              for token in raw_sent_list[id]['tokens']['token']]
-        sent['dependencies'] = [[dep['dep'][i]['@type'],
-                                 dep['dep'][i]['governor']['#text'],
-                                 dep['dep'][i]['dependent']['#text']]
+
+        sent['dependencies'] = [[enforceList(dep['dep'])[i]['@type'],
+                                 enforceList(dep['dep'])[i]['governor']['#text'],
+                                 enforceList(dep['dep'])[i]['dependent']['#text']]
                                 for dep in raw_sent_list[id]['dependencies'] if dep.get('dep')
-                                for i in xrange(len(dep['dep']))
+                                for i in xrange(len(enforceList(dep['dep'])))
                                 if dep['@type'] == 'basic-dependencies']
         sentences.append(sent)
 
