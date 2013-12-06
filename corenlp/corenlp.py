@@ -305,8 +305,8 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
         sent['text'] = extract_words_from_xml(raw_sent_list[id])
         sent['parsetree'] = unicode(raw_sent_list[id]['parse'])
         # This only works if sentiment annotation is available.
-        sent['sentimentValue'] = int(raw_sent_list[id]['@sentimentValue']) # TIM
-        sent['sentiment'] = raw_sent_list[id]['@sentiment'] # TIM
+        # sent['sentimentValue'] = int(raw_sent_list[id]['@sentimentValue']) # TIM
+        # sent['sentiment'] = raw_sent_list[id]['@sentiment'] # TIM
         if type(raw_sent_list[id]['tokens']['token']) == type(OrderedDict()):
             # This is also specific case of xmltodict
             token = raw_sent_list[id]['tokens']['token']
