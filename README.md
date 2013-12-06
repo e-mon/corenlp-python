@@ -3,14 +3,24 @@
 
 This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
-## Edited
-   * Update to Stanford CoreNLP v3.2.0
+## Updates from the original
+   * Update to Stanford CoreNLP v3.3.0
    * Fix many bugs & improve performance
    * Using jsonrpclib for stability and performance
-   * Can edit the constants as argument such as Stanford Core NLP directory
+   * Can edit constants as an argument such as Stanford Core NLP directory
    * Adjust parameters not to timeout in high load
-   * Fix a problem with long text input by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
+   * File input feature added by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
    * Packaging
+
+## Progress of the sentiment tool support
+   * File input - OK
+   * Python package and JSON-RPC server - progressing
+
+If you want to try the python interface to the sentiment tool, you have to comment out following line in `corenlp/default.properties`
+
+   annotators = tokenize, ssplit, pos, lemma, ner, parse, dcoref, sentiment
+
+This feature is contributed by "Seongtaek Lim"
 
 ## Requirements
    * [pexpect](http://www.noah.org/wiki/pexpect)
@@ -27,8 +37,8 @@ In other words:
     sudo pip install pexpect unidecode jsonrpclib   # jsonrpclib is optional
     git clone https://bitbucket.org/torotoki/corenlp-python.git
 	  cd corenlp-python
-    wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-06-20.zip
-    unzip stanford-corenlp-full-2013-06-20.zip
+    wget http://nlp.stanford.edu/software/stanford-corenlp-full-2013-11-12.zip
+    unzip stanford-corenlp-full-2013-11-12.zip
 
 Then, to launch a server:
 
@@ -41,10 +51,10 @@ Optionally, you can specify a host or port:
 That will run a public JSON-RPC server on port 3456.
 And you can specify Stanford CoreNLP directory:
 
-    python corenlp/corenlp.py -S stanford-corenlp-full-2013-06-20/
+    python corenlp/corenlp.py -S stanford-corenlp-full-2013-11-12/
 
 
-Assuming you are running on port 8080 and CoreNLP directory is `stanford-corenlp-full-2013-06-20/` in current directory, the code in `client.py` shows an example parse:
+Assuming you are running on port 8080 and CoreNLP directory is `stanford-corenlp-full-2013-11-12/` in current directory, the code in `client.py` shows an example parse:
 
     import jsonrpclib
     from simplejson import loads
