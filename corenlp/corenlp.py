@@ -35,14 +35,12 @@ from subprocess import call
 VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
-CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
-# CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\)\) -> \((\d*),(\d)*,\[(\d*),(\d*)\)\), that is: \"(.*)\" -> \"(.*)\"")
+CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\]\) -> \((\d*),(\d)*,\[(\d*),(\d*)\]\), that is: \"(.*)\" -> \"(.*)\"")
 
 if os.environ.has_key("CORENLP"):
     DIRECTORY = os.environ["CORENLP"]
 else:
-    DIRECTORY = "stanford-corenlp-full-2013-06-20"
-    # DIRECTORY = "stanford-corenlp-full-2013-11-12"
+    DIRECTORY = "stanford-corenlp-full-2013-11-12"
 
 class bc:
     HEADER = '\033[95m'
@@ -95,20 +93,16 @@ def init_corenlp_command(corenlp_path, memory, properties):
     Spawns the server as a process.
     """
 
-    jars = ["stanford-corenlp-3.2.0.jar",
-            "stanford-corenlp-3.2.0-models.jar",
+    jars = ["stanford-corenlp-3.3.0.jar",
+            "stanford-corenlp-3.3.0-models.jar",
             "xom.jar",
             "joda-time.jar",
-            "jollyday.jar"]
-    # jars = ["stanford-corenlp-3.3.0.jar",
-    #         "stanford-corenlp-3.3.0-models.jar",
-    #         "xom.jar",
-    #         "joda-time.jar",
-    #         "jollyday.jar",
-    #         "ejml-0.23.jar"] # No idea what this is but it might be sentiment
+            "jollyday.jar",
+            "ejml-0.23.jar"] # No idea what this is but it might be sentiment
 
     java_path = "java"
     classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
+
     # include the properties file, so you can change defaults
     # but any changes in output format will break parse_parser_results()
     current_dir_pr = os.path.dirname(os.path.abspath(__file__)) + "/" + properties
@@ -132,7 +126,6 @@ def init_corenlp_command(corenlp_path, memory, properties):
         limit = ""
 
     return "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
-    # return "%s %s -cp %s %s -annotators tokenize,ssplit,pos,lemma,ner,parse,dcoref,sentiment" % (java_path, limit, ':'.join(jars), classname) # TODO tim check whether you can add sentiment here
 
 
 def remove_id(word):
@@ -304,9 +297,13 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
         sent = {}
         sent['text'] = extract_words_from_xml(raw_sent_list[id])
         sent['parsetree'] = unicode(raw_sent_list[id]['parse'])
-        # This only works if sentiment annotation is available.
-        # sent['sentimentValue'] = int(raw_sent_list[id]['@sentimentValue']) # TIM
+        # sent['sentimentValue'] = int(raw_sent_list[id].get(['@sentimentValue'])) # TIM
         # sent['sentiment'] = raw_sent_list[id]['@sentiment'] # TIM
+        sentiment_value = raw_sent_list[id].get('@sentimentValue')
+        sentiment = raw_sent_list[id].get('@sentiment')
+        if sentiment_value: sent['sentimentValue'] = int(sentiment_value)
+        if sentiment_value: sent['sentiment'] = sentiment
+
         if type(raw_sent_list[id]['tokens']['token']) == type(OrderedDict()):
             # This is also specific case of xmltodict
             token = raw_sent_list[id]['tokens']['token']
