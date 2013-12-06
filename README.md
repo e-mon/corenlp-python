@@ -12,15 +12,15 @@ This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/da
    * File input feature added by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
    * Packaging
 
-## Progress of the sentiment tool support
+### Progress of the sentiment tool support
    * File input - OK
    * Python package and JSON-RPC server - progressing
 
 If you want to try the python interface to the sentiment tool, you have to comment out following line in `corenlp/default.properties`
 
-   annotators = tokenize, ssplit, pos, lemma, ner, parse, dcoref, sentiment
+    annotators = tokenize, ssplit, pos, lemma, ner, parse, dcoref, sentiment
 
-This feature is contributed by "Seongtaek Lim"
+Thanks to "Seongtaek" Lim" and "Tim Althoff" for 3.3.0 support.
 
 ## Requirements
    * [pexpect](http://www.noah.org/wiki/pexpect)
