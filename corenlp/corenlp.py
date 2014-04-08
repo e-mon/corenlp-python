@@ -35,7 +35,10 @@ from subprocess import call
 VERBOSE = False
 STATE_START, STATE_TEXT, STATE_WORDS, STATE_TREE, STATE_DEPENDENCY, STATE_COREFERENCE = 0, 1, 2, 3, 4, 5
 WORD_PATTERN = re.compile('\[([^\]]+)\]')
-CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\]\) -> \((\d*),(\d)*,\[(\d*),(\d*)\]\), that is: \"(.*)\" -> \"(.*)\"")
+#CR_PATTERN = re.compile(r"\((\d*),(\d)*,\[(\d*),(\d*)\]\) -> \((\d*),(\d)*,\[(\d*),(\d*)\]\), that is: \"(.*)\" -> \"(.*)\"")
+
+# Fixed by Diego Reforgiato. Otherwise src_pos gets one digit only
+CR_PATTERN = re.compile(r"\((\d*),(\d*),\[(\d*),(\d*)\]\) -> \((\d*),(\d*),\[(\d*),(\d*)\]\), that is: \"(.*)\" -> \"(.*)\"")
 
 if os.environ.has_key("CORENLP"):
     DIRECTORY = os.environ["CORENLP"]
