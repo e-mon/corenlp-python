@@ -3,24 +3,14 @@
 
 This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
-## Updates from the original
+## Features
    * Update to Stanford CoreNLP v3.3.0
    * Fix many bugs & improve performance
    * Using jsonrpclib for stability and performance
    * Can edit constants as an argument such as Stanford Core NLP directory
    * Adjust parameters not to timeout in high load
-   * File input feature added by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
+   * Batch parser for long text added by Johannes Castner [stanford-corenlp-python](https://github.com/jac2130/stanford-corenlp-python)
    * Packaging
-
-### Progress of the sentiment tool support
-   * File input - OK
-   * Python package and JSON-RPC server - progressing
-
-If you want to try the python interface to the sentiment tool, you have to comment out following line in `corenlp/default.properties`
-
-    annotators = tokenize, ssplit, pos, lemma, ner, parse, dcoref, sentiment
-
-Thanks to "Seongtaek" Lim" and "Tim Althoff" for 3.3.0 support.
 
 ## Requirements
    * [pexpect](http://www.noah.org/wiki/pexpect)
@@ -145,6 +135,11 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
     parsed = batch_parse(raw_text_directory, corenlp_dir, raw_output=True)
 
 (note: The function requires xmltodict now, you should install it by `sudo pip install xmltodict`)
+
+
+### Note
+
+* JSON-RPC server doesn't support sentiment analysis tools because original CoreNLP tools don't output sentiment results to stdout yet (batch parser's output includes sentiment results retrieved from the original CoreNLP tools's XML output)
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]
