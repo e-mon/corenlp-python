@@ -139,6 +139,8 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
 
 ### Note
 
+* JSON-RPC server (halts on large text)[https://bitbucket.org/torotoki/corenlp-python/issue/7/server-halts-on-large-text]. it maybe because of restriction of stdout, you should use batch parser or (other wrapper)[https://github.com/brendano/stanford_corenlp_pywrapper].
+
 * JSON-RPC server doesn't support sentiment analysis tools because original CoreNLP tools don't output sentiment results to stdout yet (batch parser's output includes sentiment results retrieved from the original CoreNLP tools's XML output)
 
 ## Developer
