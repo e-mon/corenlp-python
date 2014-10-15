@@ -9,9 +9,9 @@ This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/da
    * Using jsonrpclib for stability and performance
    * Can edit constants as an argument such as Stanford Core NLP directory
    * Adjust parameters not to timeout in high load
-   * Batch parser for long text
-   * Packaging
+   * Batch parser for long texts
    * Python 3 compatibility (thanks to Valentin Lorentz)
+   * [Packaging](https://pypi.python.org/pypi/corenlp-python)
 
 ## Requirements
    * [pexpect](http://www.noah.org/wiki/pexpect)
