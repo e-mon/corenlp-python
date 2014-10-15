@@ -24,6 +24,7 @@ import optparse
 import os
 import re
 import sys
+import glob
 import traceback
 import pexpect
 import tempfile
@@ -96,12 +97,12 @@ def init_corenlp_command(corenlp_path, memory, properties):
     Spawns the server as a process.
     """
 
-    jars = ["stanford-corenlp-3.3.0.jar",
-            "stanford-corenlp-3.3.0-models.jar",
+    jars = ["stanford-corenlp-?.?.?.jar",
+            "stanford-corenlp-?.?.?-models.jar",
             "xom.jar",
             "joda-time.jar",
             "jollyday.jar",
-            "ejml-0.23.jar"] # No idea what this is but it might be sentiment
+            "ejml-?.*.jar"] # No idea what this is but it might be sentiment
 
     java_path = "java"
     classname = "edu.stanford.nlp.pipeline.StanfordCoreNLP"
@@ -118,9 +119,10 @@ def init_corenlp_command(corenlp_path, memory, properties):
 
     # add and check classpaths
     jars = [corenlp_path + "/" + jar for jar in jars]
-    for jar in jars:
-        if not os.path.exists(jar):
-            raise Exception("Error! Cannot locate: %s" % jar)
+    missing = [jar for jar in jars if not glob.glob(jar)]
+    if missing:
+        raise Exception("Error! Cannot locate: %s" % ', '.join(missing))
+    jars = [glob.glob(jar)[0] for jar in jars]
 
     # add memory limit on JVM
     if memory:
@@ -167,10 +169,11 @@ def parse_parser_results(text):
     results = {"sentences": []}
     state = STATE_START
 
-    if type(text) == str:
+    if sys.version_info[0] < 3 and isinstance(text, str) or \
+            sys.version_info[0] >= 3 and isinstance(text, bytes):
         text = text.decode('utf-8')
 
-    for line in unidecode(text).split("\n"):
+    for line in text.split('\n'):
         line = line.strip()
 
         if line.startswith("Sentence #"):

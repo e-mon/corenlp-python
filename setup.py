@@ -1,5 +1,12 @@
 import os
+import sys
 from distutils.core import setup
+if sys.version_info[0] >= 3:
+    from distutils.command.build_py import build_py_2to3 as build_py
+    from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
+else:
+    from distutils.command.build_py import build_py
+    from distutils.command.build_scripts import build_scripts
 
 PACKAGE = "corenlp"
 NAME = "corenlp-python"
@@ -30,6 +37,10 @@ setup(
     package_data = {
         "corenlp": ["default.properties"]
     },
+    cmdclass = {'build_py': build_py,
+                'build_scripts': build_scripts
+               },
+
     install_requires=[
         "pexpect >= 2.4",
         "unidecode >= 0.04.12",
