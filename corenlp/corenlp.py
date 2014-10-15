@@ -44,7 +44,7 @@ CR_PATTERN = re.compile(r"\((\d*),(\d*),\[(\d*),(\d*)\]\) -> \((\d*),(\d*),\[(\d
 if os.environ.has_key("CORENLP"):
     DIRECTORY = os.environ["CORENLP"]
 else:
-    DIRECTORY = "stanford-corenlp-full-2013-11-12"
+    DIRECTORY = "stanford-corenlp-full-2014-08-27"
 
 class bc:
     HEADER = '\033[95m'
