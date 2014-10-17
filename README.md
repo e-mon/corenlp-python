@@ -1,14 +1,14 @@
 # A Python wrapper for the Java Stanford Core NLP tools
 ---------------------------
 
-This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
+This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as a python package, or run as a JSON-RPC server.
 
 ## Updates from the original wrapper
    * Supports Stanford CoreNLP v3.x.x (compatible with recent versions)
    * Fixed many bugs & improved performance
    * Adjusted parameters not to timeout in high load
    * Using jsonrpclib for stability and performance
-   * Batch parser for long text
+   * Batch parser for long text which supports sentiment analysis
    * Python 3 compatibility (thanks to Valentin Lorentz)
    * [Packaging](https://pypi.python.org/pypi/corenlp-python)
 
