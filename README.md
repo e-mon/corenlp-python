@@ -5,13 +5,13 @@ This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/da
 
 ## Features & Updates from the original wrapper
    * Supports Stanford CoreNLP v3.x.x (compatible with recent versions)
-   * Fixed many bugs & improve performance
-   * Using jsonrpclib for stability and performance
+   * Supports coreference resolution and sentiment analysis (the latter is batch parser only)
+   * Fixed many bugs & improved performance
    * Adjusted parameters not to timeout in high load
+   * Using jsonrpclib for stability and performance
    * Batch parser for long text
    * Python 3 compatibility (thanks to Valentin Lorentz)
    * [Packaging](https://pypi.python.org/pypi/corenlp-python)
-   * Supports coreference resolution and sentiment analysis (the latter is batch parser only)
 
 ## Requirements
    * [pexpect](http://www.noah.org/wiki/pexpect)
