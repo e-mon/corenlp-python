@@ -3,19 +3,18 @@
 
 This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
-## Updates from the original wrapper
-   * Update to Stanford CoreNLP v3.x.x
-   * Fix many bugs & improve performance
+## Features & Updates from the original wrapper
+   * Supports Stanford CoreNLP v3.x.x (compatible with recent versions)
+   * Fixed many bugs & improve performance
    * Using jsonrpclib for stability and performance
-   * Can edit constants as an argument such as Stanford Core NLP directory
-   * Adjust parameters not to timeout in high load
-   * Batch parser for long texts
+   * Adjusted parameters not to timeout in high load
+   * Batch parser for long text
    * Python 3 compatibility (thanks to Valentin Lorentz)
    * [Packaging](https://pypi.python.org/pypi/corenlp-python)
+   * Supports coreference resolution and sentiment analysis (the latter is batch parser only)
 
 ## Requirements
    * [pexpect](http://www.noah.org/wiki/pexpect)
-   * [unidecode](http://pypi.python.org/pypi/Unidecode)
    * [jsonrpclib](https://github.com/joshmarshall/jsonrpclib) (optionally)
 
 ## Download and Usage
@@ -46,7 +45,9 @@ And you can specify Stanford CoreNLP directory:
     python corenlp/corenlp.py -S stanford-corenlp-full-2014-08-27/
 
 
-Assuming you are running on port 8080 and CoreNLP directory is `stanford-corenlp-full-2013-11-12/` in current directory, the code in `client.py` shows an example parse:
+Assuming you are running on port 8080 and CoreNLP directory is `stanford-corenlp-full-2014-08-27/` in current directory, this wrapper supports recently version around of 3.4.1 which has same output format.
+
+The code in `client.py` shows an example parse:
 
     import jsonrpclib
     from simplejson import loads
@@ -136,7 +137,7 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
 
     parsed = batch_parse(raw_text_directory, corenlp_dir, raw_output=True)
 
-(note: The function requires xmltodict now, you should install it by `sudo pip install xmltodict`)
+(Note: The function requires xmltodict now, you should install it by `sudo pip install xmltodict`)
 
 
 ### Note
@@ -144,6 +145,10 @@ The function uses XML output feature of Stanford CoreNLP, and you can take all i
 * JSON-RPC server [halts on large text](https://bitbucket.org/torotoki/corenlp-python/issue/7/server-halts-on-large-text). it maybe because of restriction of stdout, you should use the batch parser or [an other wrapper](https://github.com/brendano/stanford_corenlp_pywrapper).
 
 * JSON-RPC server doesn't support sentiment analysis tools because original CoreNLP tools don't output sentiment results to stdout yet (batch parser's output includes sentiment results retrieved from the original CoreNLP tools's XML output)
+
+## License
+
+corenlp-python is licensed under the GNU General Public License (v2 or later). Note that this is the /full/ GPL, which allows many free uses, but not its use in distributed proprietary software.
 
 ## Developer
    * Hiroyoshi Komatsu [hiroyoshi.komat@gmail.com]

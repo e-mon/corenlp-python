@@ -30,7 +30,6 @@ import pexpect
 import tempfile
 import shutil
 from progressbar import ProgressBar, Fraction
-from unidecode import unidecode
 from subprocess import call
 
 VERBOSE = False
