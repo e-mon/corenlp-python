@@ -3,9 +3,8 @@
 
 This is a fork of Dustin Smith's [stanford-corenlp-python](https://github.com/dasmith/stanford-corenlp-python), a Python interface to [Stanford CoreNLP](http://nlp.stanford.edu/software/corenlp.shtml). It can either use as python package, or run as a JSON-RPC server.
 
-## Features & Updates from the original wrapper
+## Updates from the original wrapper
    * Supports Stanford CoreNLP v3.x.x (compatible with recent versions)
-   * Supports coreference resolution and sentiment analysis (the latter is batch parser only)
    * Fixed many bugs & improved performance
    * Adjusted parameters not to timeout in high load
    * Using jsonrpclib for stability and performance
