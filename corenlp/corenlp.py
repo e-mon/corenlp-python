@@ -555,7 +555,7 @@ def batch_parse(input_folder, corenlp_path=DIRECTORY, memory="3g", raw_output=Fa
     return parse_xml_output(input_folder, corenlp_path, memory, raw_output=raw_output)
 
 
-if __name__ == '__main__':
+def main():
     """
     The code below starts an JSONRPC server
     """
@@ -588,3 +588,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print >>sys.stderr, "Bye."
         exit()
+
+if __name__ == '__main__':
+    main()
