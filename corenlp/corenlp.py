@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # corenlp  - Python interface to Stanford Core NLP tools
 # Copyright (c) 2012 Dustin Smith
@@ -29,7 +30,7 @@ import traceback
 import pexpect
 import tempfile
 import shutil
-from progressbar import ProgressBar, Fraction
+from progressbar import ProgressBar
 from subprocess import call
 
 VERBOSE = False
@@ -129,7 +130,9 @@ def init_corenlp_command(corenlp_path, memory, properties):
     else:
         limit = ""
 
-    return "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
+    # add original Dependencies option for Stanfor Dependency
+    # return "%s %s -cp %s %s %s" % (java_path, limit, ':'.join(jars), classname, props)
+    return "%s %s -cp %s %s %s %s" % (java_path, limit, ':'.join(jars), classname, props, "-parse.originalDependencies")
 
 
 def remove_id(word):
@@ -174,6 +177,8 @@ def parse_parser_results(text):
 
     for line in text.split('\n'):
         line = line.strip()
+        if line.startswith("(ROOT"):
+            state = STATE_TREE
 
         if line.startswith("Sentence #"):
             sentence = {'words': [], 'parsetree': [], 'dependencies': [], 'indexeddependencies': []}
@@ -189,7 +194,6 @@ def parse_parser_results(text):
                 raise ParserError('Parse error. Could not find "[Text=" in: %s' % line)
             for s in WORD_PATTERN.findall(line):
                 sentence['words'].append(parse_bracketed(s))
-            state = STATE_TREE
 
         elif state == STATE_TREE:
             if len(line) == 0:
@@ -318,7 +322,8 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
                     ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
                     ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
                     ('PartOfSpeech', str(token['POS'])),
-                    ('Lemma', unicode(token['lemma']))])]
+                    ('Lemma', unicode(token['lemma']))] +
+                    ([('Timex', unicode(token['Timex']))] if 'Timex' in token else []))]
             ]
         else:
             sent['words'] = [[unicode(token['word']), OrderedDict([
@@ -326,8 +331,9 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
                 ('CharacterOffsetEnd', str(token['CharacterOffsetEnd'])),
                 ('CharacterOffsetBegin', str(token['CharacterOffsetBegin'])),
                 ('PartOfSpeech', str(token['POS'])),
-                ('Lemma', unicode(token['lemma']))])]
-                             for token in raw_sent_list[id]['tokens']['token']]
+                ('Lemma', unicode(token['lemma']))] +
+                ([('Timex', token['Timex'])] if 'Timex' in token else []))
+                            ] for token in raw_sent_list[id]['tokens']['token']]
 
         sent['dependencies'] = [[enforceList(dep['dep'])[i]['@type'],
                                  enforceList(dep['dep'])[i]['governor']['#text'],
@@ -335,6 +341,13 @@ def parse_parser_xml_results(xml, file_name="", raw_output=False):
                                 for dep in raw_sent_list[id]['dependencies'] if dep.get('dep')
                                 for i in xrange(len(enforceList(dep['dep'])))
                                 if dep['@type'] == 'basic-dependencies']
+
+        sent['indexeddependencies'] = [[enforceList(dep['dep'])[i]['@type'],
+                                 enforceList(dep['dep'])[i]['governor']['#text'] + '-' +  enforceList(dep['dep'])[i]['governor']['@idx'],
+                                 enforceList(dep['dep'])[i]['dependent']['#text'] + '-' + enforceList(dep['dep'])[i]['dependent']['@idx']]
+                                for dep in raw_sent_list[id]['dependencies'] if dep.get('dep')
+                                for i in xrange(len(enforceList(dep['dep'])))
+                                if dep['@type'] == 'collapsed-dependencies']
         sentences.append(sent)
 
     if coref_flag:
